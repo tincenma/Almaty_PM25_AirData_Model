@@ -1,0 +1,25 @@
+horizon_hours,model,concentration_group,n,MAE
+1,Persistence,Below pre-test 90th percentile,6548,4.7800855222968845
+1,Persistence,High: pre-test 90th percentile or above,376,18.029255319148938
+1,Ridge,Below pre-test 90th percentile,6548,4.728469617059483
+1,Ridge,High: pre-test 90th percentile or above,376,18.818946711560514
+1,Same hour yesterday,Below pre-test 90th percentile,6548,11.749389126450824
+1,Same hour yesterday,High: pre-test 90th percentile or above,376,47.619680851063826
+1,XGBoost,Below pre-test 90th percentile,6548,4.602875569570188
+1,XGBoost,High: pre-test 90th percentile or above,376,19.194845148857603
+6,Persistence,Below pre-test 90th percentile,6513,11.71057884231537
+6,Persistence,High: pre-test 90th percentile or above,370,57.016216216216215
+6,Ridge,Below pre-test 90th percentile,6513,9.573181516066612
+6,Ridge,High: pre-test 90th percentile or above,370,51.000659530227246
+6,Same hour yesterday,Below pre-test 90th percentile,6513,11.77306924612314
+6,Same hour yesterday,High: pre-test 90th percentile or above,370,48.310810810810814
+6,XGBoost,Below pre-test 90th percentile,6513,8.949465202537986
+6,XGBoost,High: pre-test 90th percentile or above,370,47.294262200432854
+24,Persistence,Below pre-test 90th percentile,6323,11.483789340502925
+24,Persistence,High: pre-test 90th percentile or above,360,47.980555555555554
+24,Ridge,Below pre-test 90th percentile,6323,9.84824585254747
+24,Ridge,High: pre-test 90th percentile or above,360,55.651504866282146
+24,Same hour yesterday,Below pre-test 90th percentile,6323,11.483789340502925
+24,Same hour yesterday,High: pre-test 90th percentile or above,360,47.980555555555554
+24,XGBoost,Below pre-test 90th percentile,6323,9.743330599074685
+24,XGBoost,High: pre-test 90th percentile or above,360,54.61736964649624

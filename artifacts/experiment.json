@@ -1,0 +1,97 @@
+{
+  "station_id": "oaq_25903",
+  "station_name": "Almaty (US Embassy)",
+  "dataset_url": "https://raw.githubusercontent.com/qazybekb/AirDatakz-OpenData/119cf2c278def3129f14cef9380cced9de1f3161/almaty/pm25.csv.gz",
+  "dataset_commit": "119cf2c278def3129f14cef9380cced9de1f3161",
+  "dataset_sha256": "300541cb3196b697b4bf676363e7b9eb59044631898bdcb47a75fb15cd9bac50",
+  "periods": {
+    "start": "2020-04-01 00:00:00+00:00",
+    "train_end": "2023-01-01 00:00:00+00:00",
+    "validation_end": "2024-01-01 00:00:00+00:00",
+    "test_end": "2025-01-01 00:00:00+00:00"
+  },
+  "horizons_hours": [
+    1,
+    6,
+    24
+  ],
+  "features": [
+    "pm25_now",
+    "pm25_lag_1h",
+    "pm25_lag_2h",
+    "pm25_lag_3h",
+    "pm25_lag_6h",
+    "pm25_lag_12h",
+    "pm25_lag_24h",
+    "pm25_lag_48h",
+    "pm25_lag_72h",
+    "pm25_lag_168h",
+    "mean_6h",
+    "std_6h",
+    "observed_6h",
+    "mean_24h",
+    "std_24h",
+    "observed_24h",
+    "mean_72h",
+    "std_72h",
+    "observed_72h",
+    "mean_168h",
+    "std_168h",
+    "observed_168h",
+    "hour_sin",
+    "hour_cos",
+    "weekday_sin",
+    "weekday_cos",
+    "year_day_sin",
+    "year_day_cos"
+  ],
+  "random_seed": 42,
+  "quick_run": true,
+  "preferred_families_from_validation": {
+    "1": "XGBoost",
+    "6": "XGBoost",
+    "24": "XGBoost"
+  },
+  "selected_settings": {
+    "1h_Ridge": {
+      "alpha": 1.0
+    },
+    "1h_XGBoost": {
+      "n_estimators": 350,
+      "max_depth": 5,
+      "learning_rate": 0.04,
+      "reg_lambda": 10.0
+    },
+    "6h_Ridge": {
+      "alpha": 1.0
+    },
+    "6h_XGBoost": {
+      "n_estimators": 200,
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "reg_lambda": 10.0
+    },
+    "24h_Ridge": {
+      "alpha": 100.0
+    },
+    "24h_XGBoost": {
+      "n_estimators": 200,
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "reg_lambda": 10.0
+    }
+  },
+  "eligibility": "current observed, >=18 observations in trailing 24h, lag168h and seasonal baseline observed",
+  "peak_error_cutoff_ugm3": 87.0,
+  "python": "3.12.0",
+  "packages": {
+    "numpy": "2.2.0",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.7.2",
+    "xgboost": "3.1.1",
+    "matplotlib": "3.10.0",
+    "joblib": "1.5.2"
+  },
+  "attribution": "AirData.kz / Global Shapers Almaty Hub; original measurement providers",
+  "license": "CC BY-NC 4.0 and applicable upstream terms"
+}
