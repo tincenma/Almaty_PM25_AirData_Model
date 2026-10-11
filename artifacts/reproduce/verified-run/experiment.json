@@ -1,0 +1,124 @@
+{
+  "station": {
+    "station_id": "kgmt_27",
+    "station_name": "PCP #31",
+    "source": "kgmt",
+    "hours": 26281,
+    "coverage": 0.6562155169133594,
+    "observed_hours": 17246,
+    "recent_coverage": 0.2619047619047619,
+    "latest": "2026-10-10T08:00:00+00:00"
+  },
+  "dataset": {
+    "commit": "06f3772f7ad5000032d2d31592c88a4311276aa0",
+    "url": "https://raw.githubusercontent.com/qazybekb/AirDatakz-OpenData/06f3772f7ad5000032d2d31592c88a4311276aa0/almaty/pm25.csv.gz",
+    "sha256": "538ab2f4750adfa7c65b7f2dd106f5729bc46212016c57cc9965c0ae77b325f9"
+  },
+  "trained_at": "2026-10-10T13:27:46.942729+00:00",
+  "features": [
+    "pm25_now",
+    "pm25_lag_1h",
+    "pm25_lag_2h",
+    "pm25_lag_3h",
+    "pm25_lag_6h",
+    "pm25_lag_12h",
+    "pm25_lag_24h",
+    "pm25_lag_48h",
+    "pm25_lag_72h",
+    "pm25_lag_168h",
+    "mean_6h",
+    "std_6h",
+    "observed_6h",
+    "mean_24h",
+    "std_24h",
+    "observed_24h",
+    "mean_72h",
+    "std_72h",
+    "observed_72h",
+    "mean_168h",
+    "std_168h",
+    "observed_168h",
+    "hour_sin",
+    "hour_cos",
+    "weekday_sin",
+    "weekday_cos",
+    "year_day_sin",
+    "year_day_cos"
+  ],
+  "horizons_hours": [
+    1,
+    6,
+    24
+  ],
+  "validation_start": "2025-06-06T05:00:00+00:00",
+  "test_start": "2025-09-26T06:00:00+00:00",
+  "latest_measurement": "2026-10-10T08:00:00+00:00",
+  "measurement_pm25": 3.87,
+  "recent_observed_hours": 24,
+  "selected_models": {
+    "1": {
+      "family": "XGBoost",
+      "settings": {
+        "n_estimators": 350,
+        "max_depth": 5,
+        "learning_rate": 0.04,
+        "reg_lambda": 10.0
+      },
+      "training_examples": 16602
+    },
+    "6": {
+      "family": "XGBoost",
+      "settings": {
+        "n_estimators": 350,
+        "max_depth": 5,
+        "learning_rate": 0.04,
+        "reg_lambda": 10.0
+      },
+      "training_examples": 16555
+    },
+    "24": {
+      "family": "XGBoost",
+      "settings": {
+        "n_estimators": 350,
+        "max_depth": 5,
+        "learning_rate": 0.04,
+        "reg_lambda": 10.0
+      },
+      "training_examples": 16423
+    }
+  },
+  "random_seed": 42,
+  "model_candidates": {
+    "Ridge": [
+      {
+        "alpha": 1.0
+      },
+      {
+        "alpha": 10.0
+      },
+      {
+        "alpha": 100.0
+      }
+    ],
+    "XGBoost": [
+      {
+        "n_estimators": 200,
+        "max_depth": 3,
+        "learning_rate": 0.05,
+        "reg_lambda": 10.0
+      },
+      {
+        "n_estimators": 350,
+        "max_depth": 5,
+        "learning_rate": 0.04,
+        "reg_lambda": 10.0
+      }
+    ]
+  },
+  "training_mode": "reproduce",
+  "reference_trained_at": "2026-10-10T12:28:17.308036+00:00",
+  "note": "Forecast horizons begin at the latest measured hour, not the current wall-clock time. Long data gaps exist, including sparse 2026 coverage. Missing history is imputed with indicators; rows without targets are excluded. Accuracy on sparse current conditions is not established.",
+  "recent_observed_hours_168": 44,
+  "test_origin_start": "2025-09-26T06:00:00+00:00",
+  "test_origin_end": "2026-10-10T07:00:00+00:00"
+}

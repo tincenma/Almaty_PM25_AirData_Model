@@ -4,9 +4,9 @@ import {
   Scatter, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { forecastRequest, request } from './api'
-import type { Forecast, ModelFamily, Overview, StationCatalog } from './api'
+import type { Forecast, LatestForecast as LatestResult, ModelFamily, Overview, StationCatalog } from './api'
 
-type View = 'forecast' | 'stations' | 'performance' | 'about'
+type View = 'latest' | 'forecast' | 'stations' | 'performance' | 'about'
 type IconName = 'wind' | 'chart' | 'info' | 'arrow' | 'download' | 'pin' | 'clock' | 'check' | 'play'
 const iconPaths: Record<IconName, string[]> = {
   wind: ['M3 8h12a3 3 0 1 0-3-3', 'M2 12h17a3 3 0 1 0-3-3', 'M5 16h9a3 3 0 1 1-3 3'],
@@ -32,7 +32,7 @@ const localDate = (value: string) => new Intl.DateTimeFormat('en-CA', { timeZone
 const number = (value: number) => value.toLocaleString('en-GB', { maximumFractionDigits: 1 })
 
 function App() {
-  const [view, setView] = useState<View>('forecast')
+  const [view, setView] = useState<View>('latest')
   const [overview, setOverview] = useState<Overview | null>(null)
   const [forecast, setForecast] = useState<Forecast | null>(null)
   const [date, setDate] = useState('')
@@ -114,16 +114,16 @@ function App() {
   }
 
   const pendingChanges = forecast && (origin !== forecast.origin || model !== forecast.model)
-  const title = view === 'forecast' ? 'A clearer view of the air ahead.' : view === 'stations' ? 'Know where the readings come from.' : view === 'performance' ? 'Every forecast, put to the test.' : 'Built on data. Grounded in reality.'
+  const title = view === 'latest' ? 'The latest readings. A view ahead.' : view === 'forecast' ? 'A clearer view of the air ahead.' : view === 'stations' ? 'Know where the readings come from.' : view === 'performance' ? 'Every forecast, put to the test.' : 'Built on data. Grounded in reality.'
 
   return <div className="app-shell">
     <aside className="sidebar">
-      <a className="brand" href="#" onClick={(event) => { event.preventDefault(); setView('forecast') }} aria-label="Breathe home">
+      <a className="brand" href="#" onClick={(event) => { event.preventDefault(); setView('latest') }} aria-label="Breathe home">
         <span className="brand-icon"><Icon name="wind" size={27} /></span><span>breathe<span className="brand-dot">.</span></span>
       </a>
       <div className="workspace-label">ALMATY AIR LAB</div>
       <nav aria-label="Main navigation">
-        {([['forecast', 'wind', 'Forecast'], ['stations', 'pin', 'Station directory'], ['performance', 'chart', 'Model performance'], ['about', 'info', 'About the project']] as const).map(([key, icon, label]) =>
+        {([['latest', 'wind', 'Latest forecast'], ['forecast', 'clock', 'Historical replay'], ['stations', 'pin', 'Station directory'], ['performance', 'chart', 'Model performance'], ['about', 'info', 'About the project']] as const).map(([key, icon, label]) =>
           <button key={key} aria-label={label} title={label} className={`nav-item ${view === key ? 'active' : ''}`} onClick={() => setView(key)} aria-current={view === key ? 'page' : undefined}>
             <Icon name={icon} /><span>{label}</span>{view === key && <span className="nav-dot" />}
           </button>)}
@@ -136,17 +136,18 @@ function App() {
     </aside>
 
     <main className="main">
-      <header className="topbar"><span>Air quality intelligence <span className="breadcrumb">/ {view === 'forecast' ? 'Forecast overview' : view === 'performance' ? 'Evaluation' : view === 'stations' ? 'Station directory' : 'Project'}</span></span>
-        <span className="replay-badge"><Icon name="clock" size={13} /> Historical replay</span>
+      <header className="topbar"><span>Air quality intelligence <span className="breadcrumb">/ {view === 'latest' ? 'Latest forecast' : view === 'forecast' ? 'Historical replay' : view === 'performance' ? 'Replay evaluation' : view === 'stations' ? 'Station directory' : 'Project'}</span></span>
+        <span className="replay-badge"><Icon name="clock" size={13} /> {view === 'latest' ? 'Latest measurements' : view === 'stations' ? 'Station information' : 'Historical replay'}</span>
       </header>
       <div className="page-content">
-        <section className="page-heading"><div><div className="eyebrow">{view === 'forecast' ? 'LOOK AHEAD' : view === 'stations' ? 'THE MONITORING NETWORK' : view === 'performance' ? 'THE EVIDENCE' : 'BEHIND THE FORECAST'}</div>
-          <h1>{title}</h1><p>{view === 'forecast' ? 'Explore PM2.5 forecasts for Almaty, one measured hour at a time.' : view === 'stations' ? 'Latest published PM2.5 readings and reporting freshness across Almaty.' : view === 'performance' ? 'Independent results from 2024, a year held out from training.' : 'A practical experiment in forecasting Almaty’s air quality.'}</p></div>
+        <section className="page-heading"><div><div className="eyebrow">{view === 'latest' || view === 'forecast' ? 'LOOK AHEAD' : view === 'stations' ? 'THE MONITORING NETWORK' : view === 'performance' ? 'THE EVIDENCE' : 'BEHIND THE FORECAST'}</div>
+          <h1>{title}</h1><p>{view === 'latest' ? 'PM2.5 forecasts from the latest published observations at PCP #31.' : view === 'forecast' ? 'Explore PM2.5 forecasts for Almaty, one measured hour at a time.' : view === 'stations' ? 'Latest published PM2.5 readings and reporting freshness across Almaty.' : view === 'performance' ? 'Independent results from 2024, a year held out from training.' : 'A practical experiment in forecasting Almaty’s air quality.'}</p></div>
           <div className="location-chip"><Icon name="pin" size={17} /><span>Almaty, Kazakhstan<small>Asia/Almaty local time</small></span></div>
         </section>
 
-        {error && <div className="error-banner" role="alert"><Icon name="info" /><span>{error}</span>{!overview && <button onClick={() => void initialize()}>Retry connection</button>}</div>}
-        {loading ? <div className="loading-state" role="status"><span className="spinner" />Connecting to the trained models…</div> : overview && forecast ? <>
+        {view === 'latest' && <LatestForecast />}
+        {view !== 'latest' && error && <div className="error-banner" role="alert"><Icon name="info" /><span>{error}</span>{!overview && <button onClick={() => void initialize()}>Retry connection</button>}</div>}
+        {view !== 'latest' && (loading ? <div className="loading-state" role="status"><span className="spinner" />Connecting to the trained models…</div> : overview && forecast ? <>
           {view === 'forecast' && <>
             <section className="panel controls-panel" aria-label="Forecast controls">
               <div className="station-control"><span className="control-label">MONITORING STATION</span><div className="station-name"><span className="station-dot" />{overview.station.name}</div><small>One station · PM2.5 concentration</small></div>
@@ -198,18 +199,70 @@ function App() {
           {view === 'performance' && <Performance overview={overview} />}
           {view === 'stations' && <StationDirectory catalog={catalog} loading={stationLoading} error={stationError} refresh={() => void refreshStations()} />}
           {view === 'about' && <About overview={overview} />}
-        </> : !error && <div className="loading-state">The model service is unavailable.</div>}
+        </> : !error && <div className="loading-state">The model service is unavailable.</div>)}
         <footer className="page-footer"><span>Powered by AirData.kz · Original measurement providers</span><span>Research forecasts · Station-level estimates</span></footer>
       </div>
     </main>
   </div>
 }
 
+function LatestForecast() {
+  const [result, setResult] = useState<LatestResult | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [exporting, setExporting] = useState(false)
+  async function load(refresh = false) {
+    setBusy(true); setError('')
+    try { setResult(await request<LatestResult>(refresh ? '/latest/refresh' : '/latest', refresh ? {method:'POST'} : undefined)) }
+    catch (failure) { setError(failure instanceof Error ? failure.message : 'Unable to load the latest forecast.') }
+    finally { setBusy(false) }
+  }
+  useEffect(() => { void load() }, [])
+  async function download() {
+    setExporting(true); setError('')
+    try {
+      const response = await fetch('/api/latest/export')
+      if (!response.ok) throw new Error('Unable to export the latest forecast.')
+      const url = URL.createObjectURL(await response.blob())
+      const link = document.createElement('a'); link.href = url; link.download = 'latest_forecast.csv'; link.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+    } catch (failure) { setError(failure instanceof Error ? failure.message : 'Export failed.') }
+    finally { setExporting(false) }
+  }
+  const chart: Forecast | null = result ? {
+    origin: result.origin, model: 'XGBoost', station_id: result.station.station_id,
+    current_pm25: result.current_pm25, input_coverage_24h: result.input_coverage_24h,
+    history: result.history, outcomes: [], forecasts: result.forecasts.map(item => ({...item, observed: 0})),
+  } : null
+  return <>
+    <section className="panel station-summary"><div><div className="eyebrow">LATEST FORECAST STATION</div><h2>{result?.station.station_name ?? 'PCP #31'} · KazHydroMet</h2><p>Forecasts for this monitoring location, based on its latest measured hour.</p>
+      {result && <p>Last measurement: <strong>{dateLabel(result.origin)}, {timeLabel(result.origin)}</strong> · {result.age_hours} hours before this forecast was generated</p>}</div>
+      <button className="primary-button" onClick={() => void load(true)} disabled={busy}>{busy ? <span className="spinner small" /> : <Icon name="clock" size={15} />}{busy ? 'Checking measurements…' : 'Refresh latest forecast'}</button>
+    </section>
+    {(error || result?.refresh_error) && <div className="error-banner" role="alert">{error || result?.refresh_error}{!result && <button onClick={() => void load()}>Retry forecast</button>}</div>}
+    {!result && busy && <div className="loading-state" role="status">Loading trained models and recent measurements…</div>}
+    {result && <>
+      <section className="station-status-strip" aria-label="Latest forecast data freshness"><Icon name="info" size={17} /><div><strong>{result.stale ? 'Measurements are older than 24 hours' : 'Forecasts start at the latest published measurement'}</strong><span>{result.input_coverage_24h}/24 hours observed in the latest day; {result.input_coverage_168h}/168 in the latest week. AirData.kz publishes daily. Missing history and publication delays can reduce accuracy.</span></div></section>
+      <div className="results-caption"><span><span className="status-dot" />Measured PM2.5: {number(result.current_pm25)} µg/m³</span><span>Forecast generated {dateLabel(result.generated_at)}, {timeLabel(result.generated_at)} · Almaty time</span></div>
+      <section className="forecast-cards" aria-label="Latest PM2.5 forecast results">{result.forecasts.map((item, index) => {
+        const metric = result.metrics.find(row => row.model === item.model && row.horizon_hours === item.horizon_hours)
+        return <article className={`forecast-card card-${index}`} key={item.horizon_hours}><div className="card-top"><span>{item.horizon_hours}-HOUR FORECAST</span><Icon name="wind" size={19} /></div><div className="forecast-number">{number(item.predicted)}<span>µg/m³</span></div><div className="forecast-description">{dateLabel(item.target_time)} · {timeLabel(item.target_time)}</div><div className="card-divider" /><div className="card-bottom">{item.target_is_past ? 'Target hour has already passed' : 'Upcoming target hour'}</div><div className="card-note">{item.model} · Historical test MAE {metric?.MAE.toFixed(1)} µg/m³</div></article>
+      })}</section>
+      {chart && <section className="panel chart-panel"><div className="panel-header"><div><h2>From the latest measured hour</h2><p>Observed history and three forecast targets, with gaps preserved.</p></div></div><ForecastChart forecast={chart} showOutcomes={false} /><div className="chart-footer"><span><Icon name="info" size={14} />Forecast hours are measured from the observation time.</span><button className="text-button" onClick={() => void download()} disabled={exporting || busy}><Icon name="download" size={15} />{exporting ? 'Downloading…' : 'Export latest forecast'}</button></div></section>}
+      <section className="panel station-directory-panel"><h2>Current-station model evaluation</h2><p className="latest-evaluation-note">Test observations start {dateLabel(result.test_start)} and contain gaps. These errors do not establish accuracy under today’s sparse reporting conditions.</p><div className="table-scroll"><table><thead><tr><th>Horizon</th><th>XGBoost test MAE</th><th>Persistence MAE</th><th>Test examples</th></tr></thead><tbody>{result.forecasts.map(item => {
+        const fitted = result.metrics.find(row => row.model === item.model && row.horizon_hours === item.horizon_hours)
+        const baseline = result.metrics.find(row => row.model === 'Persistence' && row.horizon_hours === item.horizon_hours)
+        return <tr key={item.horizon_hours}><td>{item.horizon_hours} hours</td><td>{fitted?.MAE.toFixed(2)} µg/m³</td><td>{baseline?.MAE.toFixed(2)} µg/m³</td><td>{fitted?.samples.toLocaleString()}</td></tr>
+      })}</tbody></table></div></section>
+    </>}
+  </>
+}
+
 function StationDirectory({ catalog, loading, error, refresh }: { catalog: StationCatalog | null; loading: boolean; error: string; refresh: () => void }) {
   const [recentOnly, setRecentOnly] = useState(true)
   const [search, setSearch] = useState('')
   const [source, setSource] = useState('all')
-  const trained = catalog?.trained_station
+  const trained = catalog?.current_model_station ?? catalog?.trained_station
   const all = catalog?.stations ?? []
   const sources = [...new Map(all.map(station => [station.source, station.source_name])).entries()]
   const visible = all.filter(station => (!recentOnly || station.reporting_status === 'recent')
@@ -218,7 +271,7 @@ function StationDirectory({ catalog, loading, error, refresh }: { catalog: Stati
   return <>
     <section className="panel station-summary"><div><div className="eyebrow">STATION USED BY OUR MODEL</div><h2>{trained?.name ?? 'Almaty (US Embassy)'}</h2>
       <p>{trained ? <>Last published measurement: <strong>{dateLabel(trained.latest_measurement)}, {timeLabel(trained.latest_measurement)}</strong> · {trained.source_name}</> : 'The current reporting status is not available.'}</p>
-      <p>Recently reporting stations below need their own model training or validation before they can provide forecasts in this app.</p></div>
+      <p>PCP #31 supports the latest forecast. The US Embassy station supports historical replay. Other stations need model training or validation before forecasting.</p></div>
       <span className={`station-badge ${trained?.reporting_status === 'recent' ? 'recent' : 'stale'}`}>{trained ? trained.reporting_status === 'recent' ? 'Recently reporting' : 'No recent readings' : 'Status unavailable'}</span>
     </section>
     <div className="station-directory-bar"><div><strong>{all.filter(station => station.reporting_status === 'recent').length}</strong><span>stations with published readings in the past 48 hours</span></div><button className="secondary-button" onClick={refresh} disabled={loading}><Icon name="clock" size={15} />{loading ? 'Checking…' : 'Refresh station info'}</button></div>
@@ -229,7 +282,7 @@ function StationDirectory({ catalog, loading, error, refresh }: { catalog: Stati
         <label className="toggle-label"><input type="checkbox" checked={recentOnly} onChange={event => setRecentOnly(event.target.checked)} /><span className="toggle-track" />Recently reporting only</label>
       </div>
       <div className="table-scroll"><table><thead><tr><th>Station</th><th>Source</th><th>Latest PM2.5</th><th>Measured hour · Almaty time</th><th>Reporting</th></tr></thead><tbody>
-        {visible.map(station => <tr key={station.id}><td><span className="directory-station-name">{station.name}</span><small className="directory-station-id">{station.id}{station.model_available ? ' · model station' : ''}</small></td><td>{station.source_name}</td><td>{station.latest_pm25 === null ? 'Unavailable' : `${number(station.latest_pm25)} µg/m³`}</td><td>{dateLabel(station.latest_measurement)}<small className="directory-station-id">{timeLabel(station.latest_measurement)}</small></td><td><span className={`station-badge ${station.reporting_status === 'recent' ? 'recent' : 'stale'}`}>{station.reporting_status === 'recent' ? 'Recent' : station.reporting_status === 'not_recent' ? 'No recent readings' : 'Unverified timestamp'}</span></td></tr>)}
+        {visible.map(station => <tr key={station.id}><td><span className="directory-station-name">{station.name}</span><small className="directory-station-id">{station.id}{station.id === catalog?.current_model_station?.id ? ' · latest forecast' : station.model_available ? ' · replay model' : ''}</small></td><td>{station.source_name}</td><td>{station.latest_pm25 === null ? 'Unavailable' : `${number(station.latest_pm25)} µg/m³`}</td><td>{dateLabel(station.latest_measurement)}<small className="directory-station-id">{timeLabel(station.latest_measurement)}</small></td><td><span className={`station-badge ${station.reporting_status === 'recent' ? 'recent' : 'stale'}`}>{station.reporting_status === 'recent' ? 'Recent' : station.reporting_status === 'not_recent' ? 'No recent readings' : 'Unverified timestamp'}</span></td></tr>)}
       </tbody></table></div>
       {!visible.length && <p className="station-empty" role="status">{loading ? 'Checking station data…' : 'No stations match these filters.'}</p>}
       <div className="table-note">{visible.length} stations shown · Last successful check: {catalog?.checked_at ? `${dateLabel(catalog.checked_at)}, ${timeLabel(catalog.checked_at)}` : 'Not checked'}</div>

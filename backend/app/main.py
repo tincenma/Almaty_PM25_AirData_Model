@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 from .service import ModelService
 from .stations import StationCatalog
+from .current import CurrentModelService
 
 ROOT = Path(os.getenv("AIRDATA_ROOT", Path(__file__).resolve().parents[2])).resolve()
 
@@ -22,9 +23,11 @@ ROOT = Path(os.getenv("AIRDATA_ROOT", Path(__file__).resolve().parents[2])).reso
 async def lifespan(app: FastAPI):
     app.state.models = ModelService(ROOT)
     app.state.stations = StationCatalog(ROOT)
+    app.state.current = CurrentModelService(ROOT) if (ROOT / 'artifacts/current/experiment.json').exists() else None
     yield
     del app.state.models
     del app.state.stations
+    del app.state.current
 
 
 app = FastAPI(title="Breathe Almaty API", version="1.0.0", lifespan=lifespan)
@@ -67,12 +70,49 @@ def overview(request: Request):
 
 @app.get("/api/stations")
 def stations(request: Request):
-    return request.app.state.stations.response(request.app.state.models.station_id)
+    return station_response(request)
 
 
 @app.post("/api/stations/refresh")
 def refresh_stations(request: Request):
-    return request.app.state.stations.response(request.app.state.models.station_id, refresh=True)
+    return station_response(request, refresh=True)
+
+
+def station_response(request: Request, refresh=False):
+    result = request.app.state.stations.response(request.app.state.models.station_id, refresh=refresh)
+    current = request.app.state.current
+    result['current_model_station'] = next((station for station in result['stations'] if current and station['id'] == current.station_id), None)
+    return result
+
+
+def current_prediction(request: Request, refresh=False):
+    service = request.app.state.current
+    if service is None:
+        raise HTTPException(status_code=503, detail='Latest forecasting models have not been trained yet.')
+    try:
+        return service.forecast(refresh)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.get('/api/latest')
+def latest(request: Request):
+    return current_prediction(request)
+
+
+@app.post('/api/latest/refresh')
+def refresh_latest(request: Request):
+    return current_prediction(request, refresh=True)
+
+
+@app.get('/api/latest/export')
+def export_latest(request: Request):
+    result = current_prediction(request)
+    frame = pd.DataFrame(result['forecasts'])
+    frame.insert(0, 'station_id', result['station']['station_id'])
+    frame.insert(1, 'origin_utc', result['origin'])
+    return StreamingResponse(io.StringIO(frame.to_csv(index=False)), media_type='text/csv',
+                             headers={'Content-Disposition': 'attachment; filename="latest_forecast.csv"'})
 
 
 @app.get("/api/origins")

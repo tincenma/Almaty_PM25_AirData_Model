@@ -1,8 +1,34 @@
 # Breathe Almaty forecasting application
 
+## Model trained on a currently reporting station
+
+The separate `artifacts/current/` experiment trains 1-, 6-, and 24-hour PM2.5 forecasts for KazHydroMet PCP #31 (`kgmt_27`). The dashboard opens on **Latest forecast**, which runs those fitted models against the latest saved observations. **Refresh latest forecast** retrieves the current public dataset and runs inference again without retraining. Predictions begin at the latest measured hour; each card shows the actual target date/time and flags targets that have already passed. A stale-data warning appears after 24 hours, and forecasts are blocked when fewer than 18 of the latest 24 measured hours are present. Sparse weekly coverage is displayed explicitly. The original US Embassy experiment remains available under **Historical replay**.
+
+To reproduce this experiment, run from the project root:
+
+```powershell
+backend/.venv/Scripts/python.exe -m backend.train_current
+```
+
+The default `--mode reproduce` verifies the SHA-256 of the immutable `data/current_training_pm25.csv.gz` snapshot against `data/current_training_experiment.json`. It uses the recorded station, random seed, feature definitions, candidate settings and validation/test boundaries without checking today's date or downloading data. This repeats the original validation search and both refits. Use the pinned dependencies in `backend/requirements.txt`; fit durations, run timestamps and serialized file bytes can vary across runs or platforms.
+
+To download fresh measurements and train a new experiment:
+
+```powershell
+backend/.venv/Scripts/python.exe -m backend.train_current --mode update
+```
+
+Both modes save models, metrics, a training snapshot and provenance in `artifacts/<mode>/<UTC run ID>/`. Use `--output <empty-directory>` to choose a destination. Existing nonempty directories are rejected, including the deployed `artifacts/current/` directory. A new run does not automatically replace the dashboard's models. To reproduce an updated experiment later, pass its `training_pm25.csv.gz` with `--snapshot` and its `experiment.json` with `--reference` in reproduce mode. The legacy `--download` option is replaced by `--mode update`.
+
+Refreshing observations changes only the inference snapshot and its `data/current_pm25.csv.source.json` provenance. The original frozen training snapshot and reference remain unchanged. The script emits no routine print output.
+
+In update mode, station selection requires a reading within 24 hours, at least 6,000 observed training hours and 18 observations in the latest 24 hours. It ranks eligible stations by observed history. Features preserve hourly gaps; a median imputer with missingness indicators handles unavailable history. Targets are never imputed. New chronological validation and test boundaries use the 70th and 85th percentiles of eligible origins, with forecast targets purged across boundaries; reproduction reuses the recorded boundaries. Hyperparameters are selected on validation, evaluated after refitting on pre-test labels, then separately refitted on all available labels for deployment.
+
+`artifacts/current/test_metrics.csv` reports independent test scores and persistence/seasonal baselines. `evaluation_*h.joblib` preserves evaluation models; `forecast_*h.joblib` contains final refitted models. `latest_forecast.json` contains forecasts from the latest measured hour. See `artifacts/current/training_report.md` for results and limitations. The public data is published with delays and has long gaps in 2026; these artifacts do not establish continuous live forecasting accuracy.
+
 A React and TypeScript dashboard with a Python FastAPI backend, using the trained Ridge and XGBoost model pipelines from the experiment below. Choose a held-out hour, generate 1-, 6- and 24-hour PM2.5 forecasts, optionally reveal actual outcomes, compare test metrics and download forecasts as CSV.
 
-The application is a historical replay of the Almaty US Embassy station. It makes fresh model predictions; it does not substitute saved test predictions or claim to provide live measurements. Only dates with sufficient history and observed future targets are offered. Charts show gaps and individual forecast points rather than implying a continuous hourly forecast.
+The historical replay view uses the Almaty US Embassy station and its held-out 2024 observations. The latest forecast view uses PCP #31 and does not require future targets to be observed. Both views make fresh predictions from serialized model pipelines. The public dataset updates daily, so the latest view does not claim a continuous live sensor connection. Charts show gaps and individual forecast points rather than implying a continuous hourly forecast.
 
 ## Setup
 
@@ -36,6 +62,9 @@ In another terminal, run `npm.cmd run dev` from `frontend/` and open [the develo
 
 - `GET /api/health`: readiness and loaded model count.
 - `GET /api/overview`: station metadata, available dates and independent evaluation metrics.
+- `GET /api/latest`: fresh inference from the saved latest PCP #31 observations, with measurement age, daily/weekly coverage, target times, and current-station test metrics.
+- `POST /api/latest/refresh`: retrieve updated public observations and run inference; failed refreshes return the saved snapshot with an explicit warning.
+- `GET /api/latest/export`: export the latest measured-hour forecast as CSV.
 - `GET /api/stations`: last successful public station-data check, source, coordinates, latest PM2.5, and reporting freshness. A reading within 48 hours is labeled recently reporting; official operational status is not inferred.
 - `POST /api/stations/refresh`: retrieve the latest public AirData.kz Almaty PM2.5 snapshot, independently from the immutable training dataset. A saved `data/station_status.json` snapshot remains usable if the external service is unavailable. Refreshes within 60 seconds reuse the last check.
 - `GET /api/origins?date=2024-06-01`: eligible hours for an Almaty local calendar date.
@@ -54,6 +83,12 @@ backend/.venv/Scripts/python.exe -m unittest discover -s backend/tests -v
 The server expects `artifacts/experiment.json`, the six trusted `.joblib` pipelines, evaluation CSVs, and `data/almaty_pm25.csv.gz`. It checks dataset provenance and feature metadata at startup. To use another notebook experiment, replace these files together and restart the server. `AIRDATA_ROOT` may point to another project directory containing the same structure. Load model files only from trusted sources. This is a local research application; external hosting would need deployment-specific configuration.
 
 ## Training notebook
+
+### Extended analysis of the current station
+
+The [model failure discussion](MODEL_FAILURES.md) compares failures in both the US Embassy and PCP #31 experiments, documents concrete missed rises and declines, separates observations from causal hypotheses, and provides a defense explanation and proposed next experiments.
+
+Install `backend/requirements-analysis.txt` and run `backend/.venv/Scripts/python.exe -m backend.analyze_current` from the project root. This performs no fitting and uses the checksum-verified immutable training snapshot and saved held-out predictions. It writes `artifacts/current/analysis/report.md`, five PNG figures, subgroup CSVs, the largest misses, and paired seven-day-block bootstrap comparisons. The report describes empty seasonal groups, sample counts, peak underprediction, sparse-history failures, and uncertainty. These diagnostics must not be used to tune the existing model against its test set.
 
 Open [Google Colab](https://colab.research.google.com/), choose **File → Upload notebook**, and upload `Almaty_PM25_AirData_Training.ipynb`. Select **Runtime → Run all**. A CPU runtime is sufficient; no account-specific dataset credentials or Drive mount is needed.
 

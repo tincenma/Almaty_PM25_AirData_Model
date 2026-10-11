@@ -30,6 +30,17 @@ export type StationInfo = {
 export type StationCatalog = {
   checked_at: string | null; dataset_commit: string | null; source_url: string | null;
   trained_station: StationInfo | null; stations: StationInfo[]; refresh_error: string | null;
+  current_model_station?: StationInfo | null;
+}
+
+export type LatestForecast = {
+  station: {station_id: string; station_name: string; source: string};
+  origin: string; generated_at: string; age_hours: number; stale: boolean;
+  current_pm25: number; input_coverage_24h: number; input_coverage_168h: number;
+  history: {time: string; value: number | null}[];
+  forecasts: {horizon_hours: number; target_time: string; predicted: number; target_is_past: boolean; model: ModelFamily}[];
+  metrics: {horizon_hours: number; model: string; MAE: number; RMSE: number; R2: number; samples: number}[];
+  refresh_error: string | null; trained_at: string; test_start: string;
 }
 
 export async function request<T>(path: string, options?: RequestInit): Promise<T> {

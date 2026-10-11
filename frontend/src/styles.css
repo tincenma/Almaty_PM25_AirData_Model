@@ -181,5 +181,6 @@ td:first-child { font-weight: 550; color: #40583e; }
 .directory-station-name { display: block; max-width: 290px; overflow-wrap: anywhere; white-space: normal; line-height: 1.6; }
 .directory-station-id { display: block; color: #8e9b82; font-size: 9px; font-weight: 400; margin-top: 5px; }
 .station-empty { text-align: center; color: #8b987c; padding: 30px; font-size: 12px; }
+.latest-evaluation-note { font-size: 11px; color: #718267; line-height: 1.8; }
 @media (max-width: 800px) { .station-directory-panel { padding: 17px; } .station-filters .toggle-label { margin-left: 0; } .station-directory-bar, .station-summary { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 520px) { .station-status-strip { align-items: flex-start; flex-wrap: wrap; } .station-status-strip > div { flex-basis: 85%; } .station-status-strip .text-button { margin-left: 28px; } }

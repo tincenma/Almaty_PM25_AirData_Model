@@ -1,0 +1,14 @@
+{
+  "artifacts\\ridge_1h.joblib": "b0aa10b45de633d9166d62ef0b6d5509cfa9773fd75958a5e64500e26905f922",
+  "artifacts\\ridge_24h.joblib": "39caab021f7a43bce51cd062867d7c1ad87e0f5499e73c324b4e2ab93202f410",
+  "artifacts\\ridge_6h.joblib": "d3c1b49a151970376a33060513658b3f5ef6e969276cb8e2bca75c8e7385826c",
+  "artifacts\\xgboost_1h.joblib": "3d35812ba18fb47c39b491f657fc4adcc8293bf06bb2867b8b813a1275639c55",
+  "artifacts\\xgboost_24h.joblib": "f34907d539f68fb197b97f0eff96de091acd8e784b8f8f3ba3f0bd4a457d633c",
+  "artifacts\\xgboost_6h.joblib": "ef99ec7de3b644833d2ec671ab408b05250d971dfea5b7f1de85f29b1a4daeac",
+  "artifacts\\current\\evaluation_1h.joblib": "f8b7e878abb7a35f614049dfd9016570f51810b23251665b3a0def00cbdbecbe",
+  "artifacts\\current\\evaluation_24h.joblib": "0ba5c4f8f02ea6b6607be45754511419b6f3d6cd6960895d3fe81d661465e7df",
+  "artifacts\\current\\evaluation_6h.joblib": "9ec49127487878290e82837af925ccb49fa316c7dec02547f373e7573ab6a596",
+  "artifacts\\current\\forecast_1h.joblib": "a539275d09f9ce6ca635b80722d2738e1fee755a6b340bae7aadb3ed3d562cd6",
+  "artifacts\\current\\forecast_24h.joblib": "2eebe2273bee0b40911f6a6762288ef7ac2c87343e85337d2dc2893e90009c79",
+  "artifacts\\current\\forecast_6h.joblib": "c4e7f55439f8d3113f5c538b4722fdc4eb67d8be138207a452c2327ab8079c4b"
+}

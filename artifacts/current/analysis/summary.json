@@ -1,0 +1,13 @@
+{
+  "station_id": "kgmt_27",
+  "dataset_sha256": "538ab2f4750adfa7c65b7f2dd106f5729bc46212016c57cc9965c0ae77b325f9",
+  "peak_cutoff_ugm3": 30.39,
+  "recent_month": "2026-10",
+  "bootstrap_iterations": 2000,
+  "bootstrap_block_days": 7,
+  "test_examples": 7377,
+  "missing_seasons": [
+    "Summer"
+  ],
+  "analysis_changes_models": false
+}
